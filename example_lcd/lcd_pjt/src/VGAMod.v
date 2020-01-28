@@ -1,3 +1,5 @@
+//changed for 400x272 4.3" TFT
+
 module VGAMod
 (
     input                   CLK,
