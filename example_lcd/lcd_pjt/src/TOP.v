@@ -1,3 +1,5 @@
+
+//changed for 400x272 4.3" TFT
 module TOP
 (
 	input			nRST,
@@ -27,12 +29,15 @@ module TOP
         .oscout(oscout_o) //output oscout
     );
 */
-    Gowin_PLL chip_pll(
-        .clkout(CLK_SYS), //output clkout      //200M
-        .clkoutd(CLK_PIX), //output clkoutd   //33.33M
-        .clkin(XTAL_IN) //input clkin
-    );	
+//    Gowin_PLL chip_pll(
+//        .clkout(CLK_SYS), //output clkout      //200M
+//        .clkoutd(CLK_PIX), //output clkoutd   //33.33M
+//        .clkin(XTAL_IN) //input clkin
+//    );	
 
+
+    assign CLK_SYS = XTAL_IN;
+    //assign CLK_PIX = XTAL_IN;
 
 	VGAMod	D1
 	(
@@ -49,28 +54,42 @@ module TOP
 		.LCD_R		(	LCD_R		)
 	);
 
-	assign		LCD_CLK		=	CLK_PIX;
 
     //RGB LED TEST
     reg 	[31:0] Count;
-    reg     [1:0] rgb_data;
+    //reg     [1:0] rgb_data;
+    reg     [2:0] rgb_data;
+    reg     clkdiv2;
+
 	always @(  posedge CLK_SYS or negedge nRST  )
 	begin
 		if(  !nRST  )
-		begin
-		Count		<= 32'd0;
-        rgb_data    <= 2'b00;
-		end
+            begin
+                clkdiv2 <= 1'b0;
+                //rgb_data    <= 2'b00;
+                rgb_data    <= 3'b000;
+                Count		<= 32'd0;
+            end
 		else if ( Count == 100000000 )
-		begin
-			Count <= 4'b0;
-            rgb_data <= rgb_data + 1'b1;
-		end
+            begin
+                Count <= 4'b0;
+                rgb_data <= rgb_data + 1'b1;
+            end
 		else
-		Count <= Count + 1'b1;
+            begin
+                clkdiv2 <= ~clkdiv2;
+                Count <= Count + 1'b1;
+            end
 	end
-    assign  LED_R = ~(rgb_data == 2'b01);
-    assign  LED_G = ~(rgb_data == 2'b10);
-    assign  LED_B = ~(rgb_data == 2'b11);
+    //assign  LED_R = ~(rgb_data == 2'b01);
+    //assign  LED_G = ~(rgb_data == 2'b10);
+    //assign  LED_B = ~(rgb_data == 2'b11);
+
+    assign  CLK_PIX = clkdiv2;
+    assign  LCD_CLK = clkdiv2;
+
+    assign  LED_R = rgb_data[0];
+    assign  LED_G = rgb_data[1];
+    assign  LED_B = rgb_data[2];
 
 endmodule
